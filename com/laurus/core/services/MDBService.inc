@@ -949,6 +949,7 @@ abstract class MDBService {
         $compositeBeans=new ExMap();
         $primaryProperty=null;
         $searchablePropertyList=new SimpleList();
+          $injectablesList=new SimpleList();
 
         //iterate through the entity and identify if there is any composite response required present
         foreach ($refClass->getProperties() as $refProperty) {
@@ -965,7 +966,17 @@ abstract class MDBService {
                 $this->logger->debug("compositeEntity Found");
                 $isCompositeEntity=true;
             }
-
+            if (preg_match('/@injectable\s+([^\s]+)/', $refProperty->getDocComment(), $matches)) {
+                $this->logger->debug("injectable Attribute Found");
+                 if (preg_match('/@returnType\s+([^\s]+)/', $refProperty->getDocComment(), $matches))
+                         list(, $_returnType) = $matches;
+                $beanAttr->setReturnType($_returnType);
+                 $beanAttr->setPropertyRefference($refProperty);
+                $this->logger->debug($beanAttr);
+                $injectablesList->add($beanAttr);
+                $isInjectable=true;
+                
+            } 
 
             if (preg_match('/@columnName\s+([^\s]+)/', $refProperty->getDocComment(), $matches)) { 
                 list(, $columnName) = $matches;
@@ -1063,6 +1074,56 @@ abstract class MDBService {
                      }
                 } 
             }
+           $this->logger->debug($beanInstance); 
+           $this->logger->debug("Injectable if madhe");
+                for($i=0;$i<$injectablesList->size();$i++){
+                      /*@var $val BeanAttr*/
+                    $val=$injectablesList->get($i);
+                    $returnType=$val->getReturnType();
+                    $this->logger->debug("Injectable if madhe");
+                    $this->logger->debug($val);
+                    if($returnType==1){
+                        $reflectionProperty=$val->getPropertyRefference();
+                        $injectableMethod="getInjectable".ucfirst($reflectionProperty->getName());
+                         
+                        $instance=$beanInstance->$injectableMethod();
+                        $this->logger->debug($instance);
+                        try{
+                            $setinjectableMethod="setInjectable".ucfirst($reflectionProperty->getName());
+                            $this->findById($instance,true);
+                            $beanInstance->$setinjectableMethod($instance);
+
+                        }  catch (\SQLException $ex){
+                             if ($ex->getCode() === SQLExceptionType::ZERO_ROWS) {
+                                $this->logger->debug("skipped zero rows affected");
+                                //throw new ValidationException("App Id Not Found", IAppvityExceptionType::APP_ID_NOT_FOUND); 
+                        }
+                        }
+                        
+                    }else{
+                         $reflectionProperty=$val->getPropertyRefference();
+                        $injectableMethod="getInjectable".ucfirst($reflectionProperty->getName());
+                         
+                        $instance=$beanInstance->$injectableMethod();
+                        $this->logger->debug($instance);
+                        try{
+                            $setinjectableMethod="setInjectableList".ucfirst($reflectionProperty->getName());
+                            $list=$this->findCollectionById($instance,true);
+                            $injectObjectList=new SimpleList();
+                            $this->logger->debug($list);
+                            for($j=0;$j<$list->size();$j++){
+                               $injectObjectList->add($list->get($j));
+                            }
+                            $beanInstance->$setinjectableMethod($injectObjectList);
+
+                        }  catch (\SQLException $ex){
+                             if ($ex->getCode() === SQLExceptionType::ZERO_ROWS) {
+                                $this->logger->debug("skipped zero rows affected");
+                                //throw new ValidationException("App Id Not Found", IAppvityExceptionType::APP_ID_NOT_FOUND); 
+                        }
+                        }
+                    }
+                }
             $returnList->add($beanInstance);
         }
         return $returnList;
