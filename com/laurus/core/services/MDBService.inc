@@ -31,6 +31,9 @@ abstract class MDBService {
     public function getStatementForCustomQuery(){
         return $this->conn->createStatement();
     }
+     public function getConnection(){
+        return $this->conn;
+    }
     protected function updateToDb($bean){
         //First Fetch class from the bean;
         $className=get_class($bean);
@@ -739,7 +742,10 @@ abstract class MDBService {
         
         
         
-        
+                
+        if(method_exists($bean, "getAppendQuery") && $bean->getAppendQuery()!=""){
+             $query.= " ".$bean->getAppendQuery();
+        }
         $resultSet=$this->execute($query);
         $keys=$columnMap->getKeys();
         if(!$resultSet->hasRecords()){
