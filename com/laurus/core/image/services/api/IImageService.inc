@@ -19,4 +19,9 @@ interface IImageService  extends IService{
     public function copyImageToDestination($source,$destination);
 }
 
+interface IImageType{
+    const REPONOLIMA=1;
+    const AMAZONE=2;
+}
+
 ?>

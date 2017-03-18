@@ -1,5 +1,6 @@
 <?php
 import("com.laurus.core.coreent.LCoreBean");
+import("com.laurus.core.image.services.api.IImageService");
 /**
  * Description of Image
  *
@@ -13,6 +14,15 @@ class Image {
     private $imagePath;
     private $desc;
     private $dPath;
+    private $imageType;
+    public function getImageType() {
+        return $this->imageType;
+    }
+
+    public function setImageType($imageType) {
+        $this->imageType = $imageType;
+    }
+
     public function getDPath() {
         return $this->dPath;
     }
@@ -70,7 +80,8 @@ class Image {
         $map->put("dpath",$this->getDPath());
         if ($this->getImagePath() != "") {
             $imagePathArray = explode("/", $this->getImagePath());
-            if (TUtilString::equals("org", end($imagePathArray))) {
+            if($this->getImageType()!=IImageType::AMAZONE){
+                if (TUtilString::equals("org", end($imagePathArray))) {
                 $map->put("imagePath", $this->getImagePath());
                 $map->put("thumb1", rtrim($this->getImagePath(),"/org") . "/tn");
                 $map->put("thumb2", rtrim($this->getImagePath(),"/org") . "/tm");
@@ -85,6 +96,10 @@ class Image {
                 $map->put("thumb4", $this->getImagePath() . "/ev");
                 $map->put("thumb5", $this->getImagePath() . "/cd");
             }
+            }else{
+                $map->put("imagePath", $this->getImagePath());
+            }
+            
 
         }
 

@@ -101,6 +101,7 @@ class MImageService implements IImageService {
             $image->setId($res->get("IMAGE_ID"));
             $image->setImageName($res->get("IMAGE_NAME"));
             $image->setCreatedDate($res->get("CREATED_DATE"));
+            $image->setImageType($res->get("IMAGE_TYPE"));
             $image->setImagePath($_SERVER['V_PATH'] . "content/" . base64_encode($res->get("IMAGE_ID")));
             $image->setDPath($_SERVER['V_PATH'] . "downloadimg/" . base64_encode($res->get("IMAGE_ID")));
             if ($imagePath) {
