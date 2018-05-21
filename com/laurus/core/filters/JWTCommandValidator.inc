@@ -50,23 +50,23 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
                      }catch(Exception $e){
                         $this->logger->debug($e);
                         header('HTTP/1.0 401 Unauthorized');
-                        die(); //let me die I dont deserve to live;
+                        die(); //'let me die I dont deserve to live', said the brave request to validator
                     }
                 }else{ // Then make sure that JWT token is valid. --Checked
                     $this->logger->debug("Token missing.");
                     header('HTTP/1.0 401 Unauthorized');
-                    die(); //let me die I dont deserve to live;
+                    die(); //'let me die I dont deserve to live', said the brave request to validator
                 }
             }else{
                 $this->logger->debug("Token missing.");
                 header('HTTP/1.0 401 Unauthorized');
-                die(); //let me die I dont deserve to live
+                die(); //'let me die I dont deserve to live', said the brave request to validator
             }
         } 
         //else just let them pass the wont do any harm
         /**
-         * Only a worthy child can posses my powers.
-         */
+        * Only a worthy child can posses my powers.
+        */
     }
     
     
