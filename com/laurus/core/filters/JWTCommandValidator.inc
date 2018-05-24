@@ -16,7 +16,16 @@ use \Firebase\JWT\JWT;
 
 abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
     protected $logger;
-    protected $considerCommands;
+    protected $collectionManager;
+    protected $userTypes;
+    
+    protected function stopUnauthorisedRequest(){
+        header('Content-type: application/json');
+        header('HTTP/1.0 401 Unauthorized');
+        echo "{\"status\":\"error\",\"message\":\"unauthorized request\"}";
+        die();
+    }
+
     public function __construct() {
         $this->logger= Logger::getLogger(__CLASS__);
     }
@@ -26,11 +35,12 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
     }
 
     protected function checkIfCommandPresentForValidation($commandName){
-        return array_search($commandName,$this->considerCommands);
+        return ($this->collectionManager) ? $this->collectionManager->getMethodForCommand($commandName) : false;
     }
 
-    public function doFilter(\HttpRequest $wR) {
-        if($this->checkIfCommandPresentForValidation($this->getCommandName($wR)) !== FALSE){
+    public function doFilter(\HttpRequest $wr) {
+        $encapsulator=$this->checkIfCommandPresentForValidation($this->getCommandName());
+        if( $encapsulator !== FALSE){
             // Now here I need to create plan for something extraorderinery for security. 
             $authHeader=$wr->getHeaderValue(strtolower("Authorization"));
             if(!$authHeader){
@@ -42,27 +52,26 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
                     try{
                         $secretKey = base64_decode('APPCHEFUAMRUTA');
                         $token = JWT::decode($jwt, $secretKey, array('HS512'));
-                        $this->validateRequest($wR,$token);
+                        $this->validateRequest($wr,$encapsulator,$token);
                         // Then check that token against the command requriment for security.
                         // Now this is upto the child
                         // Only then fire gun. 
                         // For this I need to cut this class legs make it abstract.
                      }catch(Exception $e){
-                        $this->logger->debug($e);
-                        header('HTTP/1.0 401 Unauthorized');
-                        die(); //'let me die I dont deserve to live', said the brave request to validator
+                        $this->logger->error($e);
+                        $this->stopUnauthorisedRequest();
                     }
                 }else{ // Then make sure that JWT token is valid. --Checked
-                    $this->logger->debug("Token missing.");
-                    header('HTTP/1.0 401 Unauthorized');
-                    die(); //'let me die I dont deserve to live', said the brave request to validator
+                    $this->stopUnauthorisedRequest();
                 }
             }else{
-                $this->logger->debug("Token missing.");
-                header('HTTP/1.0 401 Unauthorized');
-                die(); //'let me die I dont deserve to live', said the brave request to validator
+                $this->stopUnauthorisedRequest();
             }
-        } 
+        }else{
+            $this->logger->debug("validate request does not called");
+        }
+        
+
         //else just let them pass the wont do any harm
         /**
         * Only a worthy child can posses my powers.
@@ -72,7 +81,11 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
     
 
     public function initFilter(\FilterConfig $f) {
-        $this->considerCommands=$f->getInitParameter("consider"); // This command are must to consider for sercurity
+        $collectionManagerName=$f->getInitParameter("collectionManager"); // This command are must to consider for sercurity
+        if($collectionManagerName){
+            $this->collectionManager=ClassLoader::loadName($collectionManagerName)->getInstance();
+            $this->collectionManager->createCollection();
+        }
     }    
 }
 

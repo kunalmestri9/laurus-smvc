@@ -50,7 +50,7 @@ class ModelConfig{
         $this->loggerConfig->info("reading Modelconfig".$moduleConfigFilePath);
         $this->loggerConfig->debug("calling loadfiles");
         $this->loadCommands(json_decode(file_get_contents($moduleConfigFilePath),true),$moduleConfigFolder);
-        $this->loggerConfig->info($this->array);
+        //$this->loggerConfig->info($this->array);
     }
     
     private function loadCommands($array,$moduleConfigFolder){

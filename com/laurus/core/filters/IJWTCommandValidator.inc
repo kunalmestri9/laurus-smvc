@@ -6,14 +6,14 @@
 import("com.laurus.core.filters.FilterConfig");
 import("com.laurus.core.filters.FilterException");
 
-interface JWTCommandValidator {
+interface IJWTCommandValidator {
     /**
      * throws InvalidRequestException
      * @param HttpRequest $wR
      */
     public function getUserTypes();
     public function getMethodToInvolkForCommand($commandName); //This can return the annonymous function or methor refference.
-    public function validateRequest(\HttpRequest $http);    
+    public function validateRequest(\HttpRequest $http,$encapsulator,$token);    
 }
 
 ?>
