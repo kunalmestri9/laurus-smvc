@@ -37,7 +37,19 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
     protected function checkIfCommandPresentForValidation($commandName){
         return ($this->collectionManager) ? $this->collectionManager->getMethodForCommand($commandName) : false;
     }
-
+    
+    protected function objectToArray( $o ){
+        $a = (array) $o;
+        foreach( $a as &$v )
+        {
+            if( is_object( $v ) )
+            {
+                $v = $this->objectToArray( $v );
+            }
+        }
+        return $a;
+    }
+    
     public function doFilter(\HttpRequest $wr) {
         $encapsulator=$this->checkIfCommandPresentForValidation($this->getCommandName());
         if( $encapsulator !== FALSE){
@@ -51,7 +63,7 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
                 if($jwt){ // First make sure that every request can read jwt Token  --Checked
                     try{
                         $secretKey = base64_decode('APPCHEFUAMRUTA');
-                        $token = JWT::decode($jwt, $secretKey, array('HS512'));
+                        $token =$this->objectToArray(JWT::decode($jwt, $secretKey, array('HS512')));
                         $this->validateRequest($wr,$encapsulator,$token);
                         // Then check that token against the command requriment for security.
                         // Now this is upto the child
