@@ -63,7 +63,7 @@ abstract class JWTCommandValidator implements IFilter , IJWTCommandValidator{
                 if($jwt){ // First make sure that every request can read jwt Token  --Checked
                     try{
                         $secretKey = base64_decode('APPCHEFUAMRUTA');
-                        $token =$this->objectToArray(JWT::decode($jwt, $secretKey, array('HS512')));
+                        $token =$this->objectToArray(JWT::decode($jwt, $secretKey, array('HS512','HS256')));
                         $this->validateRequest($wr,$encapsulator,$token);
                         // Then check that token against the command requriment for security.
                         // Now this is upto the child
